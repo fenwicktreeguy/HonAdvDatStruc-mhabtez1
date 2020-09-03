@@ -32,7 +32,7 @@ public class Prim_ArrayList<E>{
 		simul_list = simul_nw;
 	}
 	public void add(int idx, int val){
-		System.out.println(s_size);
+		//System.out.println(s_size);
 		Object[] simul_nw = new Object[++s_size];
 		for(int i = 0; i <= idx-1; i++){
 			simul_nw[i]=simul_list[i];
@@ -59,7 +59,6 @@ public class Prim_ArrayList<E>{
 		for(int j = idx+1; j <= s_size; j++){
 			simul_nw[j-1]=simul_list[j];
 		}
-
 		simul_list= new Object[s_size];
 		simul_list=simul_nw;
 	}
@@ -71,12 +70,17 @@ class Runner{
 		Prim_ArrayList<Integer> pm = new Prim_ArrayList<Integer>(10);
 		pm.initialize();
 		pm.getArraylist();
-		pm.add(5);
-		pm.add(7);
+		pm.add(2,3);
 		pm.getArraylist();
-		//pm.add(2,3);
-		//pm.add(3,10);
-		pm.remove(3);
+		pm.add(3,10);
+		pm.getArraylist();
+		pm.set(4,13);
+		pm.getArraylist();
+		pm.set(6,22);
+		pm.getArraylist();
+		pm.remove(5);
+		pm.getArraylist();
+		pm.remove(9);
 		pm.getArraylist();
 
 
