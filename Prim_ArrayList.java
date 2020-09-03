@@ -22,7 +22,7 @@ public class Prim_ArrayList<E>{
 		System.out.println();
 	}
 
-	public void add(int val){
+	public void add(Object val){
 		try {
 			Object[] simul_nw = new Object[++s_size];
 			for(int j = 0; j < s_size-1; j++){
