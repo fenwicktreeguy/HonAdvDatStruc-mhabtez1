@@ -23,44 +23,60 @@ public class Prim_ArrayList<E>{
 	}
 
 	public void add(int val){
-		Object[] simul_nw = new Object[++s_size];
-		for(int j = 0; j < s_size-1; j++){
-			simul_nw[j]=simul_list[j];
+		try {
+			Object[] simul_nw = new Object[++s_size];
+			for(int j = 0; j < s_size-1; j++){
+				simul_nw[j]=simul_list[j];
+			}
+			simul_nw[s_size-1]=val;
+			simul_list = new Object[s_size];
+			simul_list = simul_nw;
+		} catch(Exception e){
+			e.printStackTrace();
 		}
-		simul_nw[s_size-1]=val;
-		simul_list = new Object[s_size];
-		simul_list = simul_nw;
 	}
 	public void add(int idx, Object val){
 		//System.out.println(s_size);
-		Object[] simul_nw = new Object[++s_size];
-		for(int i = 0; i <= idx-1; i++){
-			simul_nw[i]=simul_list[i];
+		try {
+			Object[] simul_nw = new Object[++s_size];
+			for(int i = 0; i <= idx-1; i++){
+				simul_nw[i]=simul_list[i];
+			}
+			for(int i = idx+1; i < s_size; i++){
+				simul_nw[i]=simul_list[i-1];
+			}
+			simul_nw[idx]=val;
+			simul_list = new Object[s_size];
+			simul_list = simul_nw;
+		} catch(Exception e){
+			e.printStackTrace();
 		}
-		for(int i = idx+1; i < s_size; i++){
-			simul_nw[i]=simul_list[i-1];
-		}
-		simul_nw[idx]=val;
-		simul_list = new Object[s_size];
-		simul_list = simul_nw;
 	}
 	public void set(int idx, Object val){
-		simul_list[idx]=val;
+		try {
+			simul_list[idx]=val;
+		} catch(Exception e){
+			e.printStackTrace();
+		}
 	}
 	public int getSize(){
 		return s_size;
 	}
 	public void remove(int idx){
-		Object[] simul_nw = new Object[--s_size];
-		for(int j = 0; j <= idx; j++){
-			simul_nw[j]=simul_list[j];
-		}
+		try {
+			Object[] simul_nw = new Object[--s_size];
+			for(int j = 0; j <= idx; j++){
+				simul_nw[j]=simul_list[j];
+			}
 
-		for(int j = idx+1; j <= s_size; j++){
-			simul_nw[j-1]=simul_list[j];
+			for(int j = idx+1; j <= s_size; j++){
+				simul_nw[j-1]=simul_list[j];
+			}
+			simul_list= new Object[s_size];
+			simul_list=simul_nw;
+		} catch(Exception e){
+			e.printStackTrace();
 		}
-		simul_list= new Object[s_size];
-		simul_list=simul_nw;
 	}
 
 }
@@ -87,4 +103,5 @@ class Runner{
 	}
 
 }
+
 
