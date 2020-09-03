@@ -31,7 +31,7 @@ public class Prim_ArrayList<E>{
 		simul_list = new Object[s_size];
 		simul_list = simul_nw;
 	}
-	public void add(int idx, int val){
+	public void add(int idx, Object val){
 		//System.out.println(s_size);
 		Object[] simul_nw = new Object[++s_size];
 		for(int i = 0; i <= idx-1; i++){
@@ -44,7 +44,7 @@ public class Prim_ArrayList<E>{
 		simul_list = new Object[s_size];
 		simul_list = simul_nw;
 	}
-	public void set(int idx, int val){
+	public void set(int idx, Object val){
 		simul_list[idx]=val;
 	}
 	public int getSize(){
