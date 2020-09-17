@@ -1,20 +1,11 @@
 import java.util.*;
 
+
 class LinkedList<E>{
 	Node head;
 	Node cur_ptr;//will by default be the same as the head
 	int sz = 0;
 	
-	//just initialize what value of head and cur_ptr will be
-	//adds to end, presumably (functional)
-	//
-	
-	/*
-	public LinkedList(Node<E> str){
-		head=str;
-		cur_ptr=str;
-	}
-	*/
 	public void add(E e){
 		if(sz==0){
 			Node<E> tmp = new Node(e,null);
@@ -116,7 +107,6 @@ class LinkedList<E>{
 		Node tmp = cur_n;
 		cur_n.nxt = (cur_n.nxt).nxt;
 		cur_ptr = cur_n;
-		++sz;
 		return (tmp.nxt);
 	}
 	public int getSize(){return sz;}
@@ -132,9 +122,68 @@ class Node<E>{
 	}
 }
 
+//because all of my classes are in a singular file, I am not able to extend and utiilize the others since only one
+//class in a file can be public, so i am basically just gonna do some method overriding to use printContents() and contains()
+class Queue<E>{
+	LinkedList<E> llm = new LinkedList();
+	int M_SIZE;
+	int c_size;
+	public Queue(int M_SIZE){
+		this.M_SIZE = M_SIZE;
+		c_size = 0;
+	}
+	public void insert(E e){
+		while(c_size>=M_SIZE){
+			llm.removeFront();
+			--c_size;
+		}
+		llm.addToFront(e);
+		++c_size;
+	}
+	public void add(E e){
+		llm.addToFront(e);
+		++c_size;
+		
+	}
+	public void remove(E e){
+		llm.removeFront();
+		--c_size;
+	}
+	public E get(int idx){
+		Node<E> cur = llm.head;
+		int c_idx = 0;
+		while(cur.nxt != null){
+			if(c_idx==idx){break;}
+			++c_idx;
+			cur=cur.nxt;
+		}
+		return cur.vl;
+	}
+	public boolean isFull(){return c_size==M_SIZE;}
+	public void printContents(){llm.printContents();}
+	public boolean contains(E e){return llm.contains(e);}
+	public int getSize(){return c_size;}
+
+}
+
 
 public class LinkedListTester{
 	public static void main(String[] args){
+		Queue<Integer> q = new Queue(10);
+		int START_V = (int)(Math.random() * 20);
+		//LinkedList<Integer> tst = new LinkedList<Integer>();
+		for(int i = 0; i < 20; i++){
+			int rm = (int)(Math.random() * 20);
+			q.add(rm);
+			q.printContents();
+		}
+		q.printContents();
+		q.insert(12);
+		q.printContents();
+		int value = q.get(4);
+		System.out.println(value);
+
+		/*
 		int START_V = (int)(Math.random() * 20);
 		LinkedList<Integer> tst = new LinkedList<Integer>();
 		for(int i = 0; i < 20; i++){
@@ -159,8 +208,10 @@ public class LinkedListTester{
 		tst.printContents();
 		tst.remove(3);
 		tst.printContents();
-		boolean cont = tst.contains(127);
+		boolean cont = tst.contains(50);
 		String rs = cont?"Yes":"No";
 		System.out.println(rs);
+		*/
 	}
 }
+
