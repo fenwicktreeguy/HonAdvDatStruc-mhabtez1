@@ -122,8 +122,6 @@ class Node<E>{
 	}
 }
 
-//because all of my classes are in a singular file, I am not able to extend and utiilize the others since only one
-//class in a file can be public, so i am basically just gonna do some method overriding to use printContents() and contains()
 class Queue<E>{
 	LinkedList<E> llm = new LinkedList();
 	int M_SIZE;
