@@ -116,6 +116,7 @@ class LinkedList<E>{
 		Node tmp = cur_n;
 		cur_n.nxt = (cur_n.nxt).nxt;
 		cur_ptr = cur_n;
+		++sz;
 		return (tmp.nxt);
 	}
 	public int getSize(){return sz;}
