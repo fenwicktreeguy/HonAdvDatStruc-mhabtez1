@@ -57,7 +57,11 @@ public class EightTiles{
     public static int CUR_Y = -1;
     public static boolean[] used = new boolean[9];
     public static java.util.TreeMap<String, Boolean> mp = new TreeMap<String, Boolean>();
-    public static java.util.Map<MapPair, MapPair> backtrack = new LinkedHashMap<MapPair,MapPair>();//for backtracking
+    //public static java.util.Map<MapPair, MapPair> backtrack = new LinkedHashMap<MapPair,MapPair>();//for backtracking
+    //very inefficient backtracking, but optimal map solution is proving to be very annoying
+    
+    public static ArrayList<MapPair> mp_pair = new ArrayList<MapPair>();
+    public static int idx_route = 0;
 
     public EightTiles() {
         frame = new JFrame("Bubbles Program");
@@ -71,17 +75,6 @@ public class EightTiles{
     
     public static void main(String... argv) {
         new EightTiles();
-    }
-
-    public static boolean custom_contains(MapPair trg){
-	    Set<MapPair> sm = backtrack.keySet();
-	    for(MapPair sp : sm){
-		    if(trg.s.equals(sp.s) && trg.amt==sp.amt){
-			    return true;
-		    }
-	    }
-	    return false;
-
     }
 
     public static void swap_tiles(TileObj[][] tile, int zero_x, int zero_y, int x_p, int y_p){
@@ -104,22 +97,40 @@ public class EightTiles{
         int yPos = 0;
         int fontSize = 20;
         public static TileObj[][] goal = new TileObj[3][3];
+	public static boolean found = false;
+	public static int n_moves = 1000000000;
         Color co = new Color(255,255,255);
         Color[] coArray = {
         new Color(255,255,255), new Color(0,255,255), new Color(255,255,0),new Color(255,0,255),new Color(0,0,255)	
         };
+	public static ArrayList<String> desired_route = new ArrayList<String>();
 
-		
-	public static boolean found = false;
-	public static int n_moves = 1000000000;
+	public static int[][] deserialize(String q){
+		int[][] arr = new int[3][3];
+		int idx =0;
+		for(int i = 0; i < 3; i++){
+			for(int j = 0; j < 3; j++){
+				arr[i][j]=(int)(q.charAt(idx))-48;
+				idx++;
+			}
+		}
+		return arr;
+
+	}
+	public static String serialize(int[][] arr){
+		String s = "";
+		for(int i = 0; i < 3; i++){
+			for(int j = 0; j < 3; j++){
+				s+=(char)(arr[i][j]+48);
+			}
+		}
+		return s;
+
+	}
+
 	
-	int iter = 0;
-	//fix pathfinder(hits STE)
-	//
-	
-	//w/ BFS
-	//
 	void randomize(){
+		idx_route=0;
 		int rw = 100;
 		int cl = 100;
 		int wid = 50;
@@ -145,47 +156,104 @@ public class EightTiles{
 	    }
 
 	    TileObj[][] cp = new TileObj[3][3];
+	    int[][] init_state=new int[3][3];
 	    for(int i = 0; i < 3; i++){
 		    for(int j = 0; j < 3; j++){
 			    cp[i][j] = new TileObj(tile[i][j].c,tile[i][j].x,tile[i][j].y,tile[i][j].vl,tile[i][j].occupied);
+			    init_state[i][j] = tile[i][j].vl;
 		    }
 	    }
 
 
 	    pathfind_two(cp);
-	    Set<MapPair> sm = backtrack.keySet();
-	    backtrack(new MapPair("012345678",n_moves),sm);
-	    if(custom_contains(new MapPair("012345678",n_moves))){
-		    System.out.println("KEY EXISTS!");
-		    System.out.println(backtrack.get(new MapPair("012345678",n_moves)));
-	    } else {
-		    System.out.println("KEY DOES NOT EXIST!");
-	    }
+	    backtrack(new MapPair("012345678",n_moves),n_moves,0,0,new ArrayList<String>());
 	    System.out.println(n_moves);
             for(int i = 0; i < 9; i++){used[i]=false;}
-
+	    Collections.reverse(desired_route);
+	    desired_route.add("012345678");
+	    if(desired_route.size()==1){desired_route.clear();}
 
 	
 
 
 	    
 
-	} 
-	
-	void backtrack(MapPair init, Set<MapPair> keys){
-		MapPair seed = init;
-		System.out.println("start");
-		while(true){
-			if(seed==null||!custom_contains(seed)){break;}
-			System.out.println(seed.s);
-			seed=backtrack.get(seed);
+	}
+
+	public static boolean custom_contains(MapPair targ){
+		for(MapPair m_p : mp_pair){
+			if(m_p.s.equals(targ.s) && m_p.amt==targ.amt){
+				return true;
+			}
 		}
-		System.out.println("finish");
+		return false;
+	}	
+	void backtrack(MapPair init, int opt_len, int tmp_zero_x,int tmp_zero_y, ArrayList<String> past){
+		MapPair seed = init;
+		//System.out.println("start");
+		boolean found = false;
+
+		if(opt_len==0){
+			desired_route=past;
+			return;
+		}
+
+		if(tmp_zero_x+1<3){
+			int[][] g = deserialize(seed.s);
+			int tmp = g[tmp_zero_x+1][tmp_zero_y];
+			g[tmp_zero_x+1][tmp_zero_y]=g[tmp_zero_x][tmp_zero_y];
+			g[tmp_zero_x][tmp_zero_y]=tmp;
+			//System.out.println(serialize(g));
+			if(custom_contains(new MapPair(serialize(g),seed.amt-1))){
+				seed=new MapPair(serialize(g),seed.amt-1);
+				past.add(seed.s);
+				backtrack(seed,opt_len-1,tmp_zero_x+1,tmp_zero_y,past);
+			}
+		}
+		if(tmp_zero_y+1<3 && !found){
+			int[][] g = deserialize(seed.s);
+			int tmp = g[tmp_zero_x][tmp_zero_y+1];
+			g[tmp_zero_x][tmp_zero_y+1]=g[tmp_zero_x][tmp_zero_y];
+			g[tmp_zero_x][tmp_zero_y]=tmp;
+			//System.out.println(serialize(g));
+			if(custom_contains(new MapPair(serialize(g),seed.amt-1))){
+				seed=new MapPair(serialize(g),seed.amt-1);
+				past.add(seed.s);
+				backtrack(seed,opt_len-1,tmp_zero_x,tmp_zero_y+1,past);
+			}
+
+
+		}
+		if(tmp_zero_x-1>=0 && !found){
+			int[][] g = deserialize(seed.s);
+			int tmp = g[tmp_zero_x-1][tmp_zero_y];
+			g[tmp_zero_x-1][tmp_zero_y]=g[tmp_zero_x][tmp_zero_y];
+			g[tmp_zero_x][tmp_zero_y]=tmp;
+			//System.out.println(serialize(g));
+
+			if(custom_contains(new MapPair(serialize(g),seed.amt-1))){
+				seed=new MapPair(serialize(g),seed.amt-1);
+				past.add(seed.s);
+				backtrack(seed,opt_len-1,tmp_zero_x-1,tmp_zero_y,past);
+			}
+		}
+			
+		if(tmp_zero_y-1>=0 && !found){
+			int[][] g = deserialize(seed.s);
+			int tmp = g[tmp_zero_x][tmp_zero_y-1];
+			g[tmp_zero_x][tmp_zero_y-1]=g[tmp_zero_x][tmp_zero_y];
+			g[tmp_zero_x][tmp_zero_y]=tmp;
+			//System.out.println(serialize(g));
+
+			if(custom_contains(new MapPair(serialize(g),seed.amt-1))){
+				seed=new MapPair(serialize(g),seed.amt-1);
+				past.add(seed.s);
+				backtrack(seed,opt_len-1,tmp_zero_x,tmp_zero_y-1,past);
+			}
+		}
 	}
 	void pathfind_two(TileObj[][] board){
 		mp.clear();
-		backtrack.clear();
-		
 		java.util.Queue<Pair> e = new java.util.LinkedList<Pair>();
 		e.add(new Pair(board,0));
 		while(e.size() > 0){
@@ -209,7 +277,7 @@ public class EightTiles{
 			}
 
 			if(amt_needed==9){
-				System.out.println("GOAL STATE SET! NUMBER OF MOVES: " + tp.amt);
+				//System.out.println("GOAL STATE SET! NUMBER OF MOVES: " + tp.amt);
 				for(int i = 0; i < 3; i++){
 					for(int j = 0; j < 3; j++){
 						goal[i][j] = tp.cur_board[j][i];
@@ -218,7 +286,7 @@ public class EightTiles{
 				n_moves = Math.min(n_moves,tp.amt);
 			}
 			
-			System.out.println(s + " " + tp.amt);
+			//System.out.println(s + " " + tp.amt);
 			//System.out.println(zero_x + " " + zero_y);
 
 			if(mp.get(s)==null){
@@ -239,11 +307,13 @@ public class EightTiles{
 							st += (char)(nw[j][i].vl + 48);
 						}						
 					}
-					System.out.println("INSIDE: " + st + " " + (tp.amt + 1) + " " + s + " " + tp.amt );
+					//System.out.println("INSIDE: " + st + " " + (tp.amt + 1) + " " + s + " " + tp.amt );
 
 					MapPair p1 = new MapPair(st,tp.amt+1);
 					MapPair p2 = new MapPair(s,tp.amt);
-					backtrack.putIfAbsent(p1,p2);
+					mp_pair.add(p1);
+					mp_pair.add(p2);
+					//backtrack.put(p1,p2);
 					e.add(new Pair(nw,tp.amt+1));
 
 				}
@@ -267,11 +337,14 @@ public class EightTiles{
 							st += (char)(nw[j][i].vl + 48);
 						}						
 					}
-					System.out.println("INSIDE: " + st + " " + (tp.amt + 1) + " " + s + " " + tp.amt );
+					//System.out.println("INSIDE: " + st + " " + (tp.amt + 1) + " " + s + " " + tp.amt );
 
 					MapPair p1 = new MapPair(st,tp.amt+1);
 					MapPair p2 = new MapPair(s,tp.amt);
-					backtrack.putIfAbsent(p1,p2);
+					mp_pair.add(p1);
+					mp_pair.add(p2);
+
+					//backtrack.put(p1,p2);
 					e.add(new Pair(nw,tp.amt+1));
 
 				}
@@ -291,11 +364,14 @@ public class EightTiles{
 							st += (char)(nw[j][i].vl + 48);
 						}						
 					}
-					System.out.println("INSIDE: " + st + " " + (tp.amt + 1) + " " + s + " " + tp.amt );
+					//System.out.println("INSIDE: " + st + " " + (tp.amt + 1) + " " + s + " " + tp.amt );
 
 					MapPair p1 = new MapPair(st,tp.amt+1);
 					MapPair p2 = new MapPair(s,tp.amt);
-					backtrack.putIfAbsent(p1,p2);
+					mp_pair.add(p1);
+					mp_pair.add(p2);
+
+					//backtrack.put(p1,p2);
 					//backtrack.put(new TileObj(tmp.c,tmp.x-1,tmp.y,tmp.vl,tmp.occupied),tmp);
 					e.add(new Pair(nw,tp.amt+1));
 
@@ -318,11 +394,14 @@ public class EightTiles{
 							st += (char)(nw[j][i].vl + 48);
 						}						
 					}
-					System.out.println("INSIDE: " + st + " " + (tp.amt + 1) + " " + s + " " + tp.amt );
+					//System.out.println("INSIDE: " + st + " " + (tp.amt + 1) + " " + s + " " + tp.amt );
 
 					MapPair p1 = new MapPair(st,tp.amt+1);
 					MapPair p2 = new MapPair(s,tp.amt);
-					backtrack.putIfAbsent(p1,p2);
+					mp_pair.add(p1);
+					mp_pair.add(p2);
+
+					//backtrack.put(p1,p2);
 					//backtrack.put(new TileObj(tmp.c,tmp.x,tmp.y-1,tmp.vl,tmp.occupied),tmp);
 					e.add(new Pair(nw,tp.amt+1));
 				}
@@ -367,6 +446,27 @@ public class EightTiles{
 	    int widt = 50;
 	    int amt = 1;
 
+	   
+
+	    if(idx_route<desired_route.size()){
+	    System.out.println(desired_route.get(idx_route));
+	    int[][] d = deserialize(desired_route.get(idx_route));
+	    int z_x=0,z_y=0;
+	    for(int i = 0; i < 3; i++){
+		for(int j = 0; j < 3; j++){
+			if(d[i][j]==0){
+				tile[i][j].vl=d[j][i];
+				tile[i][j].c=Color.BLUE;
+				tile[i][j].occupied=true;
+			} else {
+				tile[i][j].vl=d[j][i];
+				tile[i][j].c=Color.RED;
+				tile[i][j].occupied=false;
+			}
+		}
+	     }
+	    idx_route++;
+	    }
 
 	   		
     
@@ -389,8 +489,14 @@ public class EightTiles{
 		    row+=60;
 		    col=100;
 	    }
+
+	    	    //animate the backtracking
+
+
 	    g2.setColor(Color.YELLOW);
-	    g2.fillRect(300,300,50,50);
+	    g2.fillRect(500,200,150,50);
+	    g2.setColor(Color.BLACK);
+	    g2.drawString("RANDOMIZE", 530, 230);
 
            
             g2.setColor(co);
@@ -436,7 +542,7 @@ public class EightTiles{
             yPos = e.getY();
 	    System.out.println(xPos + " " + yPos);
 	    area(xPos,yPos);
-	    if(e.getX() >= 300 && e.getX() <= 350 && e.getY() >= 300 && e.getY() <= 350){
+	    if(e.getX() >= 500 && e.getX() <= 650 && e.getY() >= 200 && e.getY() <= 250){
 		randomize();
 	    }
 
@@ -478,13 +584,14 @@ public class EightTiles{
         public void run() {
             long beforeTime, timeDiff, sleep;
             beforeTime = System.currentTimeMillis();
-            int animationDelay = 37;
+            int animationDelay = 90;
             long time = System.currentTimeMillis();
             while (true) {// infinite loop
                 // spriteManager.update();
                 repaint();
                 try {
                     time += animationDelay;
+		    //Thread.sleep((long)(1.5));
                     Thread.sleep(Math.max(0, time - System.currentTimeMillis()));
                 } catch (InterruptedException e) {
                     System.out.println(e);
@@ -497,3 +604,4 @@ public class EightTiles{
 
     }//end of class
 }
+
