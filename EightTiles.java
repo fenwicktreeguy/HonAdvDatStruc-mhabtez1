@@ -58,7 +58,7 @@ public class EightTiles{
     public static boolean[] used = new boolean[9];
     public static java.util.TreeMap<String, Boolean> mp = new TreeMap<String, Boolean>();
     //public static java.util.Map<MapPair, MapPair> backtrack = new LinkedHashMap<MapPair,MapPair>();//for backtracking
-    //very inefficient backtracking, but optimal map solution is proving to be very annoying
+    //very inefficient backtracking, but optimal map solution is proving to be very annoying, some i will use arraylist instead of map
     
     public static ArrayList<MapPair> mp_pair = new ArrayList<MapPair>();
     public static int idx_route = 0;
