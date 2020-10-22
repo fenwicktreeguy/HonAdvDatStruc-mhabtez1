@@ -58,10 +58,10 @@ public class EightTiles{
     public static boolean[] used = new boolean[9];
     public static java.util.TreeMap<String, Boolean> mp = new TreeMap<String, Boolean>();
     //public static java.util.Map<MapPair, MapPair> backtrack = new LinkedHashMap<MapPair,MapPair>();//for backtracking
-    //very inefficient backtracking, but optimal map solution is proving to be very annoying, some i will use arraylist instead of map
-    
+    //very inefficient backtracking, but optimal map solution is proving to be very annoying
     public static ArrayList<MapPair> mp_pair = new ArrayList<MapPair>();
     public static int idx_route = 0;
+    public static boolean board_cur_solvable=false;
 
     public EightTiles() {
         frame = new JFrame("Bubbles Program");
@@ -76,6 +76,7 @@ public class EightTiles{
     public static void main(String... argv) {
         new EightTiles();
     }
+
 
     public static void swap_tiles(TileObj[][] tile, int zero_x, int zero_y, int x_p, int y_p){
 	int tmp = tile[zero_x+x_p][zero_y+y_p].vl;
@@ -129,6 +130,28 @@ public class EightTiles{
 	}
 
 	
+   	 public boolean is_solvable(TileObj[][] board){
+		int[][] exc = new int[3][3];
+		for(int i = 0; i < 3; i++){
+			for(int j = 0; j < 3; j++){
+				exc[i][j]=board[i][j].vl;
+			}
+		}
+		String g = serialize(exc);
+		int inversions = 0;
+		for(int i = 0; i < g.length(); i++){
+			for(int j = 0; j < g.length(); j++){
+				if(i==j){continue;}
+				if( (int)(g.charAt(j))-48==0){continue;}
+				if( (int)(g.charAt(j))-48 > (int)(g.charAt(i))-48){
+					inversions++;
+				}
+			}
+		}
+	   	return (inversions%2==0);
+    	}
+
+	
 	void randomize(){
 		idx_route=0;
 		int rw = 100;
@@ -164,15 +187,18 @@ public class EightTiles{
 		    }
 	    }
 
-
-	    pathfind_two(cp);
-	    backtrack(new MapPair("012345678",n_moves),n_moves,0,0,new ArrayList<String>());
-	    System.out.println(n_moves);
-            for(int i = 0; i < 9; i++){used[i]=false;}
-	    Collections.reverse(desired_route);
-	    desired_route.add("012345678");
-	    if(desired_route.size()==1){desired_route.clear();}
-
+	    if(is_solvable(cp)){
+		board_cur_solvable=true;
+	    	pathfind_two(cp);
+	    	backtrack(new MapPair("012345678",n_moves),n_moves,0,0,new ArrayList<String>());
+	    	System.out.println(n_moves);
+            	for(int i = 0; i < 9; i++){used[i]=false;}
+	    	Collections.reverse(desired_route);
+	    	desired_route.add("012345678");
+	    	if(desired_route.size()==1){desired_route.clear();}
+	    } else {
+		board_cur_solvable=false;
+	    }
 	
 
 
@@ -445,7 +471,11 @@ public class EightTiles{
 	    int col = 100;
 	    int widt = 50;
 	    int amt = 1;
-
+		
+	    if(!board_cur_solvable){
+		    g2.setColor(Color.WHITE);
+		    g2.drawString("UNSOLVABLE!",500,500);
+	    } else {
 	   
 
 	    if(idx_route<desired_route.size()){
@@ -466,6 +496,8 @@ public class EightTiles{
 		}
 	     }
 	    idx_route++;
+	    }
+
 	    }
 
 	   		
@@ -584,7 +616,7 @@ public class EightTiles{
         public void run() {
             long beforeTime, timeDiff, sleep;
             beforeTime = System.currentTimeMillis();
-            int animationDelay = 90;
+            int animationDelay = 92;
             long time = System.currentTimeMillis();
             while (true) {// infinite loop
                 // spriteManager.update();
@@ -604,4 +636,3 @@ public class EightTiles{
 
     }//end of class
 }
-
