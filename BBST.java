@@ -64,9 +64,6 @@ class BST{
 		balance(array,md+1,r);
 	}
 
-	public void self_balancing(){
-		
-	}
 }
 
 class Pair{
