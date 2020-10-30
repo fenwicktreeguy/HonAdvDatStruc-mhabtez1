@@ -14,12 +14,15 @@ class Pair{
 public class Stock_Produce{
 	public static HashMap<String,Double> min_indicator = new HashMap<String,Double>();
 	public static HashMap<String,Double> max_indicator = new HashMap<String,Double>();
-
+	
 	public static HashMap<String,Double> past_buys = new HashMap<String,Double>();
 	public static HashMap<String, ArrayList<Double> > cur_cmp_wts = new HashMap<String,ArrayList<Double> >();
 	public static HashMap<String,Boolean> already_bought = new HashMap<String,Boolean>();
 
 	public static String[] indicator = new String[11];
+
+	public static double ABSOLUTE_PROFIT = 10000;
+	public static int NUMBER_INDICATORS=9;
 
 	public static String getQuote(String sym) { 
         
@@ -29,7 +32,7 @@ public class Stock_Produce{
         	InputStreamReader inStream = null;
         	BufferedReader buff = null;
         	try{
-            		url = new URL("https://financialmodelingprep.com/api/v3/quote/"+ sym + "?apikey=48202bd3a7899a349eaf3e34b270ee95" );
+            		url = new URL("https://financialmodelingprep.com/api/v3/quote/"+ sym +"?apikey=3b648da593225438bdd24e82cab1a99a");
            	 urlConn = url.openConnection();
            	 inStream = new InputStreamReader(urlConn.getInputStream());
             	buff= new BufferedReader(inStream);
@@ -50,9 +53,9 @@ public class Stock_Produce{
     }
 	
 
-    //normalizes each value from [0,1] so data is consistent
-    public static double normalized_value(double x, String indicator){
-	    double ret = (double)(x-min_indicator.get(indicator))/(double)(max_indicator.get(indicator)-min_indicator.get(indicator));
+    //normalizes each value from [0,1] so data is consistent for historical data
+    public static double normalized_value(double x, String indic){
+	    double ret = (double)(x-min_indicator.get(indic))/(double)(max_indicator.get(indic)-min_indicator.get(indic));
 	    //System.out.println("NORMALIZED: " + ret);
 	    return ret;
     }
@@ -64,11 +67,23 @@ public class Stock_Produce{
 	
     }
 
-    public static void buy_or_sell(String company, double param){
-	    if(param>=1.9 && (already_bought.get(company)==null||already_bought.get(company)==false)){
+    public static void buy_or_sell(String company, double param, double priceAvg, double potPayout){
+	    System.out.println(param);
+
+	    boolean sec_one = ( param - 0.7 >= 0 ? true : false);
+	    boolean sec_two = (param - 0.5 <= 0 ? true : false);
+	    boolean sec = (already_bought.get(company)==null||already_bought.get(company)==false); 
+	    System.out.println(param-5.4 + " " + sec + " ");
+	    if(sec_one && sec){
+		 System.out.println("BUY: " + company);
 		already_bought.put(company,true);
-	    } else if(param <= 1.6 && already_bought.get(company)==true){
-		already_bought.put(company,false):
+		ABSOLUTE_PROFIT -= priceAvg;
+	    } else if(sec_two && (already_bought.get(company)!=null && already_bought.get(company)==true) ){
+		already_bought.put(company,false);
+		System.out.println("SELL: " + company);
+		ABSOLUTE_PROFIT+= priceAvg;
+	    } else {
+		System.out.println("DO NOT BUY: " + company);
 	    }
     }
 
@@ -188,7 +203,7 @@ public class Stock_Produce{
 
 	
    public static void genetic_algorithm(HashMap<String,Double> genes, HashMap<String,Double> genes_two, int generations){	
-	if(generations>100){return;}
+	if(generations>110){return;}
 	/*
 	System.out.println("MALE GENES: ");
 	Set<String> m = genes.keySet();
@@ -236,7 +251,7 @@ public class Stock_Produce{
 		 for(String s : gene_switches){
 			 System.out.println(s);
 			 double arbiter= Math.random();
-			 if(arbiter < 0.1){
+			 if(arbiter < 0.05){
 			 	genes_two.put(s,genes.get(s) + (Math.random())*(1-genes_two.get(s)) );
 			 }
 		 }
@@ -246,6 +261,22 @@ public class Stock_Produce{
 
    //theoretically, the best next approach from here is to try to remap the weights from the 11 features
    //before to the 28 features the API gives us by some querying of the API(never mind this doesnt matter)
+   
+   public static void set_indicators(){
+	   	indicator[0]="open";
+		indicator[1]="high";
+		indicator[2]="low";
+		indicator[3]="close";
+		indicator[4]="adjClose";
+		indicator[5]="volume";
+		indicator[6]="unadjustedVolume";
+		indicator[7]="change";
+		indicator[8]="changePercent";
+		indicator[9]="vwap";
+		indicator[10]="changeOverTime";
+
+   }
+ 
 
    public static void weight_precomputation(){
 	   	try{
@@ -256,22 +287,7 @@ public class Stock_Produce{
 
 			String s ="";
 			String t= "";
-			while( (s=bf.readLine())!=null){
-				String json_string = (getQuote(s));
-				//System.out.println(json_string);
-			}
-	
-			indicator[0]="open";
-			indicator[1]="high";
-			indicator[2]="low";
-			indicator[3]="close";
-			indicator[4]="adjClose";
-			indicator[5]="volume";
-			indicator[6]="unadjustedVolume";
-			indicator[7]="change";
-			indicator[8]="changePercent";
-			indicator[9]="vwap";
-			indicator[10]="changeOverTime";
+			set_indicators();
 			HashMap<String,Double> init_genes = new HashMap<String,Double>();
 			HashMap<String, Double> init_two = new HashMap<String,Double>();
 			for(int i = 0; i < 11; i++){
@@ -309,7 +325,7 @@ public class Stock_Produce{
 			}
 
 			
-			if(new File("weights.txt").length() == 0){
+			//if(new File("weights.txt").length() == 0){
 				for(int i = 0; i < indicator.length-1; i++){
 					wt.write(write_one);
 					wt.write("\n");
@@ -320,7 +336,7 @@ public class Stock_Produce{
 					wt.write(write_one);
 					wt.write("\n");
 				}
-			}
+			//}
 
 			wt.close();
 
@@ -336,15 +352,68 @@ public class Stock_Produce{
 	return new ArrayList<Double>();
    }
    public static void main(String[] args){
-		weight_precomputation();
+	   	set_indicators();
+		//weight_precomputation();
 		//with computed weights, query API and use weighs to determine buys and sells
 		try{
 			BufferedReader cmp = new BufferedReader(new FileReader("companies.txt"));
+			BufferedReader wt = new BufferedReader(new FileReader("weights.txt"));
 			String cmp_str="";
 			while( (cmp_str=cmp.readLine())!=null){
+				System.out.println(cmp_str);
 				String json_string = getQuote(cmp_str);
-				System.out.println();
+				System.out.println(json_string);
+				
+				if(json_string.length()==0){continue;}
+				json_string = json_string.replaceAll("\\s","");
+				json_string=json_string.substring(json_string.indexOf(':')+1);
+				json_string=json_string.substring(json_string.indexOf(':')+1);
+				ArrayList<Double> values= new ArrayList<Double>();
+
+				while(json_string != null){
+					//System.out.println(json_string);
+					if(json_string.indexOf(',')==-1){break;}
+					String to_double = json_string.substring(0,json_string.indexOf(','));
+					if(!((int)(to_double.charAt(0))>=48&&(int)(to_double.charAt(0))<=57) ){
+						json_string=json_string.substring(json_string.indexOf(':')+1);
+						continue;
+					}
+					double give = Double.parseDouble(to_double);
+					values.add(give);
+					System.out.println(give);
+					if(json_string.indexOf(':')==-1){break;}	
+					System.out.println();
+					json_string=json_string.substring(json_string.indexOf(':')+1);
+				}
+				
+				int index = 0;
+				String tmp = "";
+				ArrayList<Double> relevant_factors = new ArrayList<Double>();
+				while(index<NUMBER_INDICATORS && (tmp=wt.readLine())!=null){
+					while(tmp != null){
+						if(tmp.indexOf(' ')==-1){break;}
+						int idx = tmp.indexOf(' ');
+						double d = Double.parseDouble(tmp.substring(0,idx));
+						relevant_factors.add(d);
+						tmp=tmp.substring(tmp.indexOf(' ')+1);
+						index++;
+					}
+						
+				}
+				double param_consider = 0;
+				for(int i = 0; i < Math.min(relevant_factors.size(),values.size()); i++){
+					param_consider += relevant_factors.get(i)*values.get(i);
+				}
+				System.out.println(cmp_str + " " + param_consider);
+				if(values.size()>=5){
+					buy_or_sell(cmp_str,(double)(param_consider)/(double)(1e9),values.get(4));
+				}
+				
 			}
+
+			System.out.println(ABSOLUTE_PROFIT);
+
+
 		}catch(Exception e){
 			e.printStackTrace();
 		}
@@ -352,3 +421,4 @@ public class Stock_Produce{
      				
    }
 }
+
