@@ -64,14 +64,27 @@ class BST{
 		balance(array,md+1,r);
 	}
 
+	public void decode(){
+		
+	}
+		
+
 }
+
 
 class Pair{
 	char c;
 	int amt;
+	Node pot_root;
 	public Pair(char c, int amt){
 		this.c=c;
 		this.amt=amt;
+		pot_root = null;
+	}
+	public Pair(char c, int amt, Node pot_root){
+		this.c=c;
+		this.amt=amt;
+		this.pot_root=pot_root;
 	}
 
 }
@@ -90,15 +103,18 @@ class HuffmanTree{
 	String encode;
 	BST btree;
 	ArrayList<Pair> char_occs;
-	HashMap<Character,Integer>occ;
-	HashMap<Character,String> char_compressions;
+	HashMap<Character,Integer> occ;
+	public HashMap<Character,String> char_compressions;
+	public HashMap<String,Character> char_decoding;
+	String tot_path = "";
 
 	public HuffmanTree(String encode){
-		this.encode=encode.toLowerCase();
+		this.encode=encode;
 		btree=null;
 		char_occs = new ArrayList<Pair>();
 		occ=new HashMap<Character,Integer>();
 		char_compressions = new HashMap<Character,String>();
+		char_decoding= new HashMap<String, Character>();
 	}
 	public void populate(){
 		for(int c = 0; c < encode.length(); c++){
@@ -113,47 +129,89 @@ class HuffmanTree{
 			char_occs.add(new Pair(c,occ.get(c)));
 		}
 		Collections.sort(char_occs, new Pair_Sort());
-		//assign root of tree before to avoid NPE(and add char element of Node so we know the character and value)
-		btree = new BST(new Node('_',char_occs.get(0).amt+char_occs.get(1).amt));
-		if(char_occs.get(1).amt <= char_occs.get(0).amt){
-			btree.root.left=new Node(char_occs.get(1).c, char_occs.get(1).amt);
-			btree.root.right=new Node(char_occs.get(0).c, char_occs.get(0).amt);
-		} else {
-			btree.root.left=new Node(char_occs.get(0).c, char_occs.get(0).amt);
-			btree.root.right=new Node(char_occs.get(1).c, char_occs.get(1).amt);
-		}
 	}
 	public void build(){
-		for(int i = 2; i < char_occs.size(); i++){
-			//assign left/right nodes based on value
-			if(btree.root.vl<=char_occs.get(i).amt){
-				Node tmp = btree.root;
-				btree.root=new Node('_', btree.root.vl+char_occs.get(i).amt);
-				btree.root.left=tmp;
-				btree.root.right=new Node(char_occs.get(i).c,char_occs.get(i).amt);
-			} else {
-				Node tmp = btree.root;
-				btree.root=new Node('_', btree.root.vl+char_occs.get(i).amt);
-				btree.root.right=tmp;
-				btree.root.left=new Node(char_occs.get(i).c, char_occs.get(i).amt);
+		//assign the root a dummy value to avoid NPE
+		btree =new BST( new Node('_',0) );
+		java.util.Queue<Pair> l = new LinkedList<Pair>();
+		for(Pair p : char_occs){
+			l.add(p);
+			System.out.println(p.c + " " + p.amt);
+		}
+
+		//in the Pair class, we maintain a tenative pot_root 
+		while(l.size() > 0){
+			Pair p = l.poll();
+			Pair p2 = l.poll();
+			if(p==null || p2 == null){break;}
+			//System.out.println(p.amt + " " + p2.amt);
+			btree.root= new Node('_',p.amt+p2.amt);
+			if(p.c != '_'){
+				p.pot_root = new Node(p.c,p.amt);
 			}
+			if(p2.c != '_'){
+				p2.pot_root= new Node(p2.c,p2.amt);
+			}
+	
+			if(p.amt<p2.amt){
+				btree.root.left=p.pot_root;;
+				btree.root.right=p2.pot_root;;
+			} else {
+				btree.root.left=p2.pot_root;
+				btree.root.right=p.pot_root;
+			}
+			l.add(new Pair('_', p.amt + p2.amt, btree.root) );
 		}
 	}
 	public void query(String path, Node cur){
 		if(cur.left != null){
-			query('0'+path, cur.left);	
+			query(path+'0', cur.left);	
 		}
 		if(cur.right != null){
-			query('1'+path,cur.right);
+			query(path+'1',cur.right);
 		}
 		char_compressions.put(cur.c,path);
+		System.out.println(path);
+		String tmp = path;
+		if(cur.c != '_'){
+			char_compressions.put(cur.c,tmp);
+			char_decoding.put(tmp,cur.c);
+		}
+
+	}
+
+	public void bin_string(){
+		for(int i = 0; i < encode.length(); i++){
+			tot_path += char_compressions.get(encode.charAt(i));
+		}
+
 	}
 
 	public void show_compressions(){
 		Set<Character> keySet = char_compressions.keySet();
 		for(Character chr : keySet){
-			System.out.println(chr + " " + char_compressions.get(chr));
+			if(chr=='_'){continue;}
+			String tmp = char_compressions.get(chr);
+			System.out.println(chr + " " + tmp);
 		}
+	}
+
+	public String decode(Node cur){
+		String res = "";
+		int idx = 0;
+		int inc = 1;
+		while(idx+inc<=tot_path.length()){
+			//System.out.println(tot_path.substring(idx,idx+inc));
+			//System.out.println(char_decoding.get(tot_path.substring(idx,idx+inc))); 
+			if(char_decoding.get(tot_path.substring(idx,idx+inc)) == null){
+				inc++;
+			} else {
+				res += char_decoding.get(tot_path.substring(idx,idx+inc));
+				idx=idx+inc;
+				inc=1;
+			}
+		}
+		return res;
 	}
 	
 }
@@ -163,17 +221,23 @@ public class BBST{
 
 		//HUFFMAN TREE STUFF
 		
-		/*
-		HuffmanTree hf = new HuffmanTree("Chicken Nugget");
+		
+		HuffmanTree hf = new HuffmanTree("Matthew Habtezgi");
 		hf.populate();
 		hf.build();
-		hf.btree.show(hf.btree.root);
+		//hf.btree.show(hf.btree.root);
 		hf.query("",hf.btree.root);
 		hf.show_compressions();
-		*/
+		hf.bin_string();
+		System.out.println(hf.tot_path);
+		String s = hf.decode(hf.btree.root);
+		System.out.println(s);
+		
+		
 		
 
 		
+		/*
 		
 		//inserting into tree
 		
@@ -187,7 +251,7 @@ public class BBST{
 		b.insert(b.root,6);
 		b.insert(b.root,20);
 		b.show(b.root);
-		*/
+		
 		
 		int[] give = new int[20];
 		for(int i = 0; i < 20; i++){
@@ -199,7 +263,7 @@ public class BBST{
 		System.out.println();
 		b.balance(give,0,give.length);
 		b.show(b.root);
-		
+		*/
 		
 		
 	}
