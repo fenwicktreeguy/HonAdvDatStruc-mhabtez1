@@ -64,10 +64,6 @@ class BST{
 		balance(array,md+1,r);
 	}
 
-	public void decode(){
-		
-	}
-		
 
 }
 
