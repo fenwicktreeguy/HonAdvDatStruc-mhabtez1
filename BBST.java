@@ -170,10 +170,10 @@ class HuffmanTree{
 		if(cur.right != null){
 			query(path+'1',cur.right);
 		}
-		char_compressions.put(cur.c,path);
-		System.out.println(path);
+		//char_compressions.put(cur.c,path);
 		String tmp = path;
 		if(cur.c != '_'){
+			System.out.println(cur.c + " " + path);
 			char_compressions.put(cur.c,tmp);
 			char_decoding.put(tmp,cur.c);
 		}
@@ -222,16 +222,17 @@ public class BBST{
 		//HUFFMAN TREE STUFF
 		
 		
-		HuffmanTree hf = new HuffmanTree("Matthew Habtezgi");
+		HuffmanTree hf = new HuffmanTree("This is a test for encoding and decoding information.");
+		System.out.println("INPUT PHRASE: " + hf.encode);
 		hf.populate();
 		hf.build();
 		//hf.btree.show(hf.btree.root);
 		hf.query("",hf.btree.root);
-		hf.show_compressions();
+		//hf.show_compressions();
 		hf.bin_string();
 		System.out.println(hf.tot_path);
 		String s = hf.decode(hf.btree.root);
-		System.out.println(s);
+		System.out.println("OUTPUT PHRASE: " + s);
 		
 		
 		
@@ -269,5 +270,7 @@ public class BBST{
 	}
 
 }
+
+
 
 
