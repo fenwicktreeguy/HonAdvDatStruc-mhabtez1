@@ -142,9 +142,17 @@ class LinkedList<E>{
 
 class Graph<E>{
     LinkedList[] g;
-
+    ArrayList<Integer> best_path;
+    int min_path = 1000000000;
+    public boolean[] vis;
     public Graph(int num_nodes) {
         g = new LinkedList[num_nodes];
+        best_path = new ArrayList<Integer>();
+        vis = new boolean[1000001];
+        for(int i = 0; i < 1000001; i++){
+            vis[i] = false;
+        }
+        min_path = 1000000000;
     }
 
     public void init() {
@@ -152,28 +160,66 @@ class Graph<E>{
             g[i] = new LinkedList<E>();
         }
     }
-    
+
     //undirected edges
     public void addEdge(int u, int v) {
         g[u].add(v);
         g[v].add(u);
     }
+    public void shortest_path(ArrayList<Integer> path, int src, int dst){
+        for(int i = 0; i < path.size(); i++){
+            System.out.print(path.get(i) + " ");
+        }
+        System.out.println();
+        if(src==dst){
+            path.add(dst);
+             if(Math.min(min_path,path.size())==path.size()){
+                 best_path.clear();
+                 best_path = path;
+                 min_path = path.size();
+             }
+        }
+        if(!vis[src]){
+            vis[src]=true;
+            LinkedList tmp = g[src];
+            path.add(src);
+            Node<Integer> srt = tmp.head;
+            while(srt != null){
+                ArrayList<Integer> cloned = (ArrayList)path.clone();
+                shortest_path(cloned, srt.vl, dst);
+                srt = srt.nxt;
+            }
+        } else {
+            System.out.println("VISITED");
+        }
+    }
 }
 
 public class Graph_Runner{
     public static void main(String[] args){
-        Graph gf = new Graph(5);
+        Graph gf = new Graph(8);
         gf.init();
-        gf.addEdge(0,1);
-        gf.addEdge(0,4);
-        gf.addEdge(1,2);
-        gf.addEdge(1,3);
-        gf.addEdge(1,4);
-        gf.addEdge(2,3);
-        gf.addEdge(3,4);
+        gf.addEdge(0, 1);
+        gf.addEdge(0, 3);
+        gf.addEdge(1, 2);
+        gf.addEdge(3, 4);
+        gf.addEdge(3, 7);
+        gf.addEdge(4, 5);
+        gf.addEdge(4, 6);
+        gf.addEdge(4, 7);
+        gf.addEdge(5, 6);
+        gf.addEdge(6, 7);
         for(LinkedList l : gf.g) {
             l.printContents();
         }
+        ArrayList<Integer> start = new ArrayList<Integer>();
+        gf.shortest_path(start, 0, 7);
+        for(int i = 0; i < gf.best_path.size(); i++){
+            System.out.print(gf.best_path.get(i) + " ");
+        }
+        System.out.println();
+
     }
 }
+
 
